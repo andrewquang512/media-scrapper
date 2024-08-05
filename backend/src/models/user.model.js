@@ -1,16 +1,16 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/database')
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const sequelize = require('../config/database');
 
 const User = sequelize.define(
   'user',
   {
     id: {
-      type: Sequelize.UUID,
+      type: DataTypes.UUID,
       defaultValue: Sequelize.UUIDV4,
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
     },
     name: {
       type: DataTypes.STRING,
@@ -28,8 +28,19 @@ const User = sequelize.define(
   {
     tableName: 'user',
     timestamps: true,
-  }
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.changed('password')) {
+          user.password = await bcrypt.hash(user.password, 8);
+        }
+      },
+    },
+  },
 );
 
+User.isEmailTaken = async function (email) {
+  const user = await this.findOne({ where: { email } });
+  return !!user;
+};
 
 module.exports = User;

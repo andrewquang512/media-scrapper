@@ -1,23 +1,37 @@
 const app = require('./app');
-const sequelize = require('./config/database')
+const sequelize = require('./config/database');
 const config = require('./config/config');
 const logger = require('./config/logger');
 
 let server;
 
-sequelize.authenticate().then(()=>
-  server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`);
-  })
-).catch((error)=>
-   logger.error('Unable to connect to the database:', error)
-)
+const startServer = () => {
+  return new Promise((resolve, reject) => {
+    server = app.listen(config.port, () => {
+      logger.info(`Server is listening on port ${config.port}`);
+      resolve(server);
+    });
 
-sequelize.sync().then(() => {
-  console.log('Book table created successfully!');
-}).catch((error) => {
-  console.error('Unable to create table : ', error);
-});
+    server.on('error', (error) => {
+      logger.error(`Error starting server: ${error.message}`);
+      reject(error);
+    });
+  });
+};
+
+sequelize
+  .authenticate()
+  .then(() => startServer())
+  .catch((error) => logger.error('Unable to connect to the database:', error));
+
+sequelize
+  .sync()
+  .then(() => {
+    console.log(' Database synchronize successfully!');
+  })
+  .catch((error) => {
+    console.error('Unable to synchronize table : ', error);
+  });
 
 const exitHandler = () => {
   if (server) {
@@ -44,5 +58,3 @@ process.on('SIGTERM', () => {
     server.close();
   }
 });
-
-

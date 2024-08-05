@@ -34,6 +34,10 @@ const deleteUser = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const scrapURLs = catchAsync(async (req, res) => {
+  const { URLs } = req.params;
+});
+
 module.exports = {
   createUser,
   getUsers,

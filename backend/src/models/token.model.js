@@ -1,6 +1,5 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/database')
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 const { tokenTypes } = require('../config/tokens');
 
 const Token = sequelize.define(
@@ -13,25 +12,22 @@ const Token = sequelize.define(
     },
     userId: {
       type: DataTypes.UUID,
-      references: {
-          model: 'user',
-          key: 'id'
-      }
+      allowNull: false,
     },
     type: {
       type: DataTypes.STRING,
       enum: [tokenTypes.REFRESH, tokenTypes.RESET_PASSWORD, tokenTypes.VERIFY_EMAIL],
-      required: true,
+      allowNull: false,
     },
     expires: {
       type: DataTypes.DATE,
-      required: true,
+      allowNull: false,
     },
   },
   {
     tableName: 'token',
     timestamps: true,
-  }
+  },
 );
 
 module.exports = Token;
