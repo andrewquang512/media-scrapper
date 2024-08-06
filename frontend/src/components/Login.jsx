@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { AuthContext } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -7,30 +7,43 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const [errorMessage, setErrorMessage] = useState(null); // New state for handling error messages
+  const [errorMessage, setErrorMessage] = useState(null); // State for handling error messages
   const { setToken } = useContext(AuthContext);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedAccessToken = localStorage.getItem('AccessToken');
+    if (storedAccessToken) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${storedAccessToken}`
+      navigate('/dashboard');
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log(email);
-      console.log(password);
-      const response = await axios.post('http://localhost:3000/v1/auth/login', {
+      const response = await axios.post('/auth/login', {
         email,
         password,
       });
 
-      setToken(response.data.tokens.access.token);
-      localStorage.setItem('AccessToken', response.data.tokens.access.token);
-      localStorage.setItem('RefreshToken', response.data.tokens.refresh.token);
+      const { access, refresh } = response.data.tokens;
+
+      setToken(access.token);
+      localStorage.setItem('AccessToken', access.token);
+      localStorage.setItem('RefreshToken', refresh.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access.token}`
       navigate('/dashboard');
     } catch (error) {
       console.error('Authentication failed:', error);
       setToken(null);
-      localStorage.removeItem('token');
+      localStorage.removeItem('AccessToken');
+      localStorage.removeItem('RefreshToken');
+
       if (error.response && error.response.data) {
-        setErrorMessage(error.response.data); // Set the error message if present in the error response
+        // Assume the error message is under `error.response.data.message`
+        setErrorMessage(error.response.data.message || 'Authentication failed. Please check your credentials and try again.');
       } else {
         setErrorMessage('An unexpected error occurred. Please try again.');
       }
@@ -75,7 +88,7 @@ const Login = () => {
                   />
                 </div>
                 <div className="d-flex justify-content-center m-2">
-                  <button type="submit" className="btn  btn-primary btn-block">
+                  <button type="submit" className="btn btn-primary btn-block">
                     Login
                   </button>
                 </div>

@@ -21,8 +21,10 @@ const scrapURLs = catchAsync(async (req, res) => {
 const getUserURLs = catchAsync(async (req, res) => {
   const textSearch = req.query.search;
   const typeMedia = req.query.type;
+  const page = Number(req.query.page);
+  const limit = Number(req.query.limit);
 
-  const result = await searchMedia(textSearch, typeMedia);
+  const result = await searchMedia(textSearch, typeMedia, page, limit);
   res.send({ result });
 });
 

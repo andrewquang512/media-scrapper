@@ -16,7 +16,7 @@ const Token = sequelize.define(
     },
     type: {
       type: DataTypes.STRING,
-      enum: [tokenTypes.REFRESH, tokenTypes.RESET_PASSWORD, tokenTypes.VERIFY_EMAIL],
+      enum: [tokenTypes.REFRESH],
       allowNull: false,
     },
     expires: {

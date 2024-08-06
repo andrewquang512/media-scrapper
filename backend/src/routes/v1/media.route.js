@@ -1,10 +1,12 @@
 const express = require('express');
+const validate = require('../../middlewares/validate');
+const mediaValidation = require('../../validations/media.validation');
 const mediaController = require('../../controllers/media.controller');
 const auth = require('../../middlewares/auth');
 
 const router = express.Router();
 
-router.post('/scrap', auth(), mediaController.scrapURLs);
+router.post('/scrap', auth(), validate(mediaValidation.insertMedia), mediaController.scrapURLs);
 router.get('/', auth(), mediaController.getUserURLs);
 
 module.exports = router;

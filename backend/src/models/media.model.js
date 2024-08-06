@@ -41,7 +41,7 @@ Media.bulkInsert = async (records) => {
  * @param {number} page
  * @param {number} limit
  */
-Media.findByMediaTypeAndUrl = async (url, mediaType, page = 1, limit = 10) => {
+Media.findByMediaTypeAndUrl = async (url, mediaType, page, limit) => {
   const whereClause = {};
 
   if (mediaType === 'image' || mediaType === 'video') {
@@ -50,6 +50,7 @@ Media.findByMediaTypeAndUrl = async (url, mediaType, page = 1, limit = 10) => {
   if (url) {
     whereClause.url = url;
   }
+
   const offset = (page - 1) * limit;
 
   const result = await Media.findAndCountAll({

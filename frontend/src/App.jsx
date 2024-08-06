@@ -11,8 +11,14 @@ import Logout from './components/Logout';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import { AuthProvider } from './components/AuthContext';
+import axios from "axios";
+import { useEffect } from "react";
 
 function App() {
+
+  useEffect(() => {
+    axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+  }, []);
 
   return (
     <Router>

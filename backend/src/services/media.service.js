@@ -29,12 +29,14 @@ const createMedia = async (imgURLs, vidURLs, userId) => {
   return result;
 };
 
-const searchMedia = async (searchText, searchType, page, limit) => {
+const searchMedia = async (searchText, searchType, page = 1, limit = 10) => {
   if (searchType && searchType !== 'video' && searchType !== 'image') {
     throw new ApiError(httpStatus.BAD_REQUEST, 'type should be "video" or "image"');
   }
 
   const result = await Media.findByMediaTypeAndUrl(searchText, searchType, page, limit);
+  result.limit = limit;
+  result.page = page;
   return result;
 };
 
