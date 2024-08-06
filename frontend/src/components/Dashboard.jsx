@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { AuthContext } from './AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useDebounce } from '../hooks/useDebounce';
 import '../mediaList.css';
@@ -17,51 +17,75 @@ function Dashboard() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
-
+  const [query, setQuery] = useState('');
 
   const navigate = useNavigate();
 
-  // Debounced search function
-  const performSearch = useCallback(async (searchTerm, type, pageNum, limit) => {
+  const fetchResults = async () => {
+    if (!query) return;
+
     setLoading(true);
+    setError(null);
+
+    const URLs = query.split(',');
     try {
-      const response = await axios.get('/media', {
-        params: {
-          type: type,
-          search: searchTerm,
-          page: pageNum,
-          limit: limit,
-        },
-      });
-      setMediaItems(response.data.result.rows);
-      setTotalCount(response.data.result.count);
-    } catch (error) {
-      console.error('Error fetching media:', error);
+      await axios.post('/media/scrap', { URLs: URLs });
+    } catch (err) {
+      console.error('Error scrape media:', error);
       if (err.response && err.response.status === 401) {
         localStorage.removeItem('AccessToken');
         navigate('/login');
       }
       setError(error);
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
-  }, []);
+  };
+
+  const performSearch = useCallback(
+    async (searchTerm, type, pageNum, limit) => {
+      setLoading(true);
+      try {
+        const response = await axios.get('/media', {
+          params: {
+            type: type,
+            search: searchTerm,
+            page: pageNum,
+            limit: limit,
+          },
+        });
+        setMediaItems(response.data.result.rows);
+        setTotalCount(response.data.result.count);
+      } catch (error) {
+        console.error('Error fetching media:', error);
+        if (err.response && err.response.status === 401) {
+          localStorage.removeItem('AccessToken');
+          navigate('/login');
+        }
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   const debouncedPerformSearch = useDebounce(performSearch, DELAY);
 
   useEffect(() => {
-    axios.get('/media', {
-      params: {
-        page: page,
-        limit: limit,
-      },
-    })
-      .then(response => response.data)
-      .then(data => {
+    axios
+      .get('/media', {
+        params: {
+          page: page,
+          limit: limit,
+        },
+      })
+      .then((response) => response.data)
+      .then((data) => {
         setMediaItems(data.result.rows);
         setTotalCount(data.result.count);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Error fetching media:', error);
         if (err.response && err.response.status === 401) {
           localStorage.removeItem('AccessToken');
@@ -99,7 +123,7 @@ function Dashboard() {
   }
 
   if (!token) {
-    return <Navigate to="/login" replace />;
+    navigate('/login');
   }
 
   return (
@@ -160,7 +184,10 @@ function Dashboard() {
                   <tbody>
                     {mediaItems.map((item, index) => (
                       <tr key={index}>
-                        <td>{item.mediaType.charAt(0).toUpperCase() + item.mediaType.slice(1)}</td>
+                        <td>
+                          {item.mediaType.charAt(0).toUpperCase() +
+                            item.mediaType.slice(1)}
+                        </td>
                         <td>
                           {item.mediaType === 'image' ? (
                             <img
@@ -182,7 +209,12 @@ function Dashboard() {
                           )}
                         </td>
                         <td className="url-column">
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="url-link">
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="url-link"
+                          >
                             {item.url}
                           </a>
                         </td>
@@ -193,19 +225,33 @@ function Dashboard() {
                 <nav aria-label="Page navigation">
                   <ul className="pagination justify-content-center">
                     <li className={`page-item ${page === 1 ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => handlePageChange(page - 1)}>
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(page - 1)}
+                      >
                         Previous
                       </button>
                     </li>
-                    {[...Array(totalPages).keys()].map(num => (
-                      <li key={num + 1} className={`page-item ${page === num + 1 ? 'active' : ''}`}>
-                        <button className="page-link" onClick={() => handlePageChange(num + 1)}>
+                    {[...Array(totalPages).keys()].map((num) => (
+                      <li
+                        key={num + 1}
+                        className={`page-item ${page === num + 1 ? 'active' : ''}`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => handlePageChange(num + 1)}
+                        >
                           {num + 1}
                         </button>
                       </li>
                     ))}
-                    <li className={`page-item ${page === totalPages ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => handlePageChange(page + 1)}>
+                    <li
+                      className={`page-item ${page === totalPages ? 'disabled' : ''}`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(page + 1)}
+                      >
                         Next
                       </button>
                     </li>
@@ -216,6 +262,30 @@ function Dashboard() {
           </div>
         </div>
         <div className="col-md-2 col-lg-3"></div>
+      </div>
+      <div className="container d-flex justify-content-center">
+        <h2 className="p-3">Scrap Media Url</h2>
+        <div className="p-3">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="URL to scrap, seperated by comma"
+            className="form-control"
+          />
+        </div>
+        <button
+          onClick={fetchResults}
+          className="m-3 btn btn-primary"
+          disabled={loading} // Disable button while loading
+        >
+          {loading ? 'Loading...' : 'Scrap'}
+        </button>
+      </div>
+      <div className="mt-4 text-center">
+        <Link to="/logout" className="btn btn-danger">
+          Logout
+        </Link>
       </div>
     </div>
   );

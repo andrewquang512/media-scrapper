@@ -1,12 +1,13 @@
 const catchAsync = require('../utils/catchAsync');
 const scrapMediaURL = require('../services/scrapping.service');
 const { createMedia, searchMedia } = require('../services/media.service');
+const config = require('../config/config');
 
 const scrapURLs = catchAsync(async (req, res) => {
   const { URLs } = req.body;
   const userId = req.user.id;
 
-  const BATCH_SIZE = 100; // Adjust based on testing
+  const BATCH_SIZE = config.puppeteerPagePerBrowser; // Adjust based on testing
   const result = [];
   for (let i = 0; i < URLs.length; i += BATCH_SIZE) {
     const batch = URLs.slice(i, i + BATCH_SIZE);

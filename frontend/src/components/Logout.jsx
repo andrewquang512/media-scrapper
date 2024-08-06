@@ -1,6 +1,7 @@
-import React, { useContext, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Logout = () => {
   const { setToken } = useContext(AuthContext);
@@ -8,14 +9,17 @@ const Logout = () => {
 
   useEffect(() => {
     setToken(null);
-
-    // Remove the token from local storage
+    axios.defaults.headers.common['Authorization'] = ``;
     localStorage.removeItem('AccessToken');
-
+    localStorage.removeItem('RefreshToken');
     navigate('/login');
   }, []);
 
-  return <div>Logging out...</div>;
+  return (
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      Logging out...
+    </div>
+  );
 };
 
 export default Logout;

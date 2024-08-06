@@ -1,5 +1,5 @@
 // src/App.jsx
-import "bootswatch/dist/journal/bootstrap.min.css";
+import 'bootswatch/dist/journal/bootstrap.min.css';
 import {
   BrowserRouter as Router,
   Route,
@@ -11,11 +11,10 @@ import Logout from './components/Logout';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import { AuthProvider } from './components/AuthContext';
-import axios from "axios";
-import { useEffect } from "react";
+import axios from 'axios';
+import { useEffect } from 'react';
 
 function App() {
-
   useEffect(() => {
     axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
   }, []);

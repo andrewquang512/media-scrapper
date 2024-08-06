@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { AuthContext } from './AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +15,8 @@ const Login = () => {
   useEffect(() => {
     const storedAccessToken = localStorage.getItem('AccessToken');
     if (storedAccessToken) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${storedAccessToken}`
+      axios.defaults.headers.common['Authorization'] =
+        `Bearer ${storedAccessToken}`;
       navigate('/dashboard');
     }
   }, []);
@@ -33,7 +34,7 @@ const Login = () => {
       setToken(access.token);
       localStorage.setItem('AccessToken', access.token);
       localStorage.setItem('RefreshToken', refresh.token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access.token}`
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access.token}`;
       navigate('/dashboard');
     } catch (error) {
       console.error('Authentication failed:', error);
@@ -43,7 +44,10 @@ const Login = () => {
 
       if (error.response && error.response.data) {
         // Assume the error message is under `error.response.data.message`
-        setErrorMessage(error.response.data.message || 'Authentication failed. Please check your credentials and try again.');
+        setErrorMessage(
+          error.response.data.message ||
+            'Authentication failed. Please check your credentials and try again.',
+        );
       } else {
         setErrorMessage('An unexpected error occurred. Please try again.');
       }
@@ -91,6 +95,11 @@ const Login = () => {
                   <button type="submit" className="btn btn-primary btn-block">
                     Login
                   </button>
+                </div>
+                <div className="mt-4 text-center">
+                  <Link to="/register" className="btn btn-info">
+                    Go to Register
+                  </Link>
                 </div>
               </form>
             </div>

@@ -1,17 +1,37 @@
 version: '3'
 
 services:
-  node-app:
-    build: .
-    image: node-app
+  backend:
+    build:
+      context: ./backend
     environment:
-      - MONGODB_URL=mongodb://mongodb:27017/node-boilerplate
+      - PORT=3000
+      - NODE_ENV=development
+      - DATABASE_HOST=localhost
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=home123
+      - DATABASE_NAME=media_scrapper
+      - PUPPETEER_NUMBER_OF_PAGE_PER_BROWSER=10
+      - JWT_SECRET=thisisasamplesecret
+      - JWT_ACCESS_EXPIRATION_MINUTES=30
+      - JWT_REFRESH_EXPIRATION_DAYS=30
     ports:
       - '3000:3000'
-    depends_on:
-      - mongodb
+    restart: on-failure
     volumes:
-      - .:/usr/src/node-app
+      - ./backend:/usr/src/app
+    networks:
+      - node-network
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - '3001:80'
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/usr/src/app
     networks:
       - node-network
 
@@ -22,7 +42,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: media_scrapper
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     ports:
       - '3306:3306'
     networks:
