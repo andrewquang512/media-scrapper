@@ -1,49 +1,41 @@
-const puppeteer = require('puppeteer');
-const logger = require('../config/logger');
+const httpStatus = require('http-status');
+const Media = require('../models/media.model');
+const ApiError = require('../utils/ApiError');
 
 /**
- *
- * @param {string[]} URLs
+ * Insert Media
+ * @param {string[]} imgURLs
+ * @param {string[]} vidURLs
+ * @param {string} userId
+ * @param {string} [secret]
+ * @returns {Promise}
  */
-const scrapMediaURL = async (URLs) => {
-  const browser = await puppeteer.launch();
-  const mediaUrls = [];
+const createMedia = async (imgURLs, vidURLs, userId) => {
+  const videoMediaList = vidURLs.map((eachURL) => ({
+    userId,
+    url: eachURL,
+    mediaType: 'video',
+  }));
 
-  const processUrl = async (url) => {
-    try {
-      const page = await browser.newPage();
-      await page.goto(url, { waitUntil: 'networkidle2' });
+  const imageMediaList = imgURLs.map((eachURL) => ({
+    userId,
+    url: eachURL,
+    mediaType: 'image',
+  }));
 
-      // Extract media URLs from the page
-      const urls = await page.evaluate(() => {
-        const imgUrls = Array.from(document.querySelectorAll('img'))
-          .map((img) => img.src)
-          .filter((src) => src);
-        const videoUrls = Array.from(document.querySelectorAll('video'))
-          .map((video) => video.src)
-          .filter((src) => src);
-        return [...imgUrls, ...videoUrls];
-      });
+  const batchCreateList = [...videoMediaList, ...imageMediaList];
 
-      mediaUrls.push(...urls);
-
-      await page.close();
-    } catch (error) {
-      logger.error(`Failed to process URL ${url}:`, error);
-    }
-  };
-
-  const promiseList = [];
-
-  for (const url of URLs) {
-    promiseList.push(processUrl(url));
-  }
-
-  await Promise.all(promiseList);
-  logger.info('All URLs have been processed');
-  logger.info(mediaUrls);
-
-  await browser.close();
+  const result = await Media.bulkInsert(batchCreateList);
+  return result;
 };
 
-module.exports = scrapMediaURL;
+const searchMedia = async (searchText, searchType, page, limit) => {
+  if (searchType && searchType !== 'video' && searchType !== 'image') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'type should be "video" or "image"');
+  }
+
+  const result = await Media.findByMediaTypeAndUrl(searchText, searchType, page, limit);
+  return result;
+};
+
+module.exports = { createMedia, searchMedia };

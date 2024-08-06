@@ -16,16 +16,12 @@ const Media = sequelize.define(
       allowNull: false,
     },
     url: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     mediaType: {
       type: DataTypes.ENUM('image', 'video'),
       allowNull: false,
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
     },
   },
   {
@@ -33,5 +29,35 @@ const Media = sequelize.define(
     timestamps: true,
   },
 );
+
+Media.bulkInsert = async (records) => {
+  const media = await Media.bulkCreate(records);
+  return media;
+};
+
+/**
+ * @param {{video|image}} mediaType
+ * @param {string} url
+ * @param {number} page
+ * @param {number} limit
+ */
+Media.findByMediaTypeAndUrl = async (url, mediaType, page = 1, limit = 10) => {
+  const whereClause = {};
+
+  if (mediaType === 'image' || mediaType === 'video') {
+    whereClause.mediaType = mediaType;
+  }
+  if (url) {
+    whereClause.url = url;
+  }
+  const offset = (page - 1) * limit;
+
+  const result = await Media.findAndCountAll({
+    where: whereClause,
+    limit,
+    offset,
+  });
+  return result;
+};
 
 module.exports = Media;

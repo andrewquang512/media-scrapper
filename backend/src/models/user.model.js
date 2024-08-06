@@ -1,5 +1,4 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const sequelize = require('../config/database');
 
@@ -41,6 +40,15 @@ const User = sequelize.define(
 User.isEmailTaken = async function (email) {
   const user = await this.findOne({ where: { email } });
   return !!user;
+};
+
+User.findById = async function (id) {
+  const user = await this.findOne({ where: { id } });
+  return user;
+};
+
+User.isPasswordMatch = async function (password, encryptedPassword) {
+  return bcrypt.compare(password, encryptedPassword);
 };
 
 module.exports = User;

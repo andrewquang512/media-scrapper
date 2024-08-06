@@ -25,6 +25,7 @@
     "no-param-reassign": "off",
     "jest/expect-expect": "off",
     "security/detect-object-injection": "off",
-    "no-restricted-syntax": "off"
+    "no-restricted-syntax": "off",
+    "no-await-in-loop": "off"
   }
 }

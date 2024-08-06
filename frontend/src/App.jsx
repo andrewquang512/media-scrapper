@@ -1,41 +1,32 @@
 // src/App.jsx
-import { useState, useEffect } from 'react'
-import ItemList from './components/ItemsList'
-import Input from './components/Input'
-
-import { useGetUsers } from './hooks/useGetUsers'
+import "bootswatch/dist/journal/bootstrap.min.css";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from 'react-router-dom';
+import Login from './components/Login';
+import Logout from './components/Logout';
+import Register from './components/Register';
+import Dashboard from './components/Dashboard';
+import { AuthProvider } from './components/AuthContext';
 
 function App() {
-  const {users, loading, error} = useGetUsers()
-  const [filteredUsers, setFilteredUsers] = useState([])
-
-  useEffect(() => {
-    // check if the users are not empty, if so then the 
-    // API call was successful and we can update our 
-    // filteredUsers state
-    if (Object.keys(users).length > 0) {
-      setFilteredUsers(users)
-    }
-  }, [users]) // this effect should run when the users state gets updated
-
-  const filterItems = (searchTerm) => { 
-    // we previously set the input state here, 
-    // you can remove that now
-    const filteredItems = users.filter((user) =>
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    setFilteredUsers(filteredItems);
-  }
 
   return (
-    <>
-      <Input onChangeCallback={filterItems} />
-      {loading && <p>Loading...</p>}
-      {error && <p>There was an error loading the users</p>}
-      {!loading && !error && <ItemList items={filteredUsers} />}
-    </>
-  )
+    <Router>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
+    </Router>
+  );
 }
 
-export default App
+export default App;
