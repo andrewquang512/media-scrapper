@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const { DataTypes, Op } = require('sequelize');
 const sequelize = require('../config/database'); // Adjust the path as needed
 
 // Define the Media model
@@ -47,8 +47,11 @@ Media.findByMediaTypeAndUrl = async (url, mediaType, page, limit) => {
   if (mediaType === 'image' || mediaType === 'video') {
     whereClause.mediaType = mediaType;
   }
+
   if (url) {
-    whereClause.url = url;
+    whereClause.url = {
+      [Op.like]: `%${url}%`,
+    };
   }
 
   const offset = (page - 1) * limit;
